@@ -1,0 +1,13 @@
+[package]
+name = "ranking"
+version = "0.0.1"
+authors = ["drbh <david.richard.holtz@gmail.com>"]
+edition = "2018"
+license = "MIT/Apache-2.0"
+description = "Calculate average or median ranking from many samples or ranked data"
+keywords = ["ranking"]
+homepage = "https://github.com/drbh/ranking-rs"
+repository = "https://github.com/drbh/ranking-rs.git"
+readme = "README.md"
+
+[dependencies]
