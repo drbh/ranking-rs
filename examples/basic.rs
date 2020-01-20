@@ -1,4 +1,4 @@
-use ranking::{calculate_ranking, Metric};
+use ranking::{calculate_metric, Metric};
 
 fn main() {
     // example of people ranking tequila brands
@@ -13,12 +13,10 @@ fn main() {
     ];
 
     // here we use the median to calculate the final ranking
-    let m_metric = Metric::Median;
-    let rankings_by_median = calculate_ranking(everyones_rankings.clone(), m_metric);
-    println!("{:?}", rankings_by_median);
+    let scored_by_median = calculate_metric(everyones_rankings.clone(), Metric::Median);
+    println!("{:?}", scored_by_median);
 
     // here we use the average to calculate the final ranking
-    let a_metric = Metric::Average;
-    let rankings_by_average = calculate_ranking(everyones_rankings.clone(), a_metric);
-    println!("{:?}", rankings_by_average);
+    let scored_by_average = calculate_metric(everyones_rankings.clone(), Metric::Average);
+    println!("{:?}", scored_by_average);
 }
