@@ -137,7 +137,7 @@ pub fn bt(
     for i in 1..unique_players.len(){
         results.push((ranks[i], unique_players[i].clone()))
     }
-    println!("{}", "Ranking Bradley Terry Model");
+    // println!("{}", "Ranking Bradley Terry Model");
     results.sort_by(|a, b| b.partial_cmp(a).unwrap_or(Equal));
     results
 }
