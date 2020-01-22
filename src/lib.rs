@@ -17,10 +17,106 @@ pub enum PairMetric {
     WinMinusLossByOpps,
 }
 
-pub fn bt(
-    all_pairs: Vec<(&str, &str)>,
-    // metric: PairMetric,
-) -> Vec<(f32, String)> {
+fn get_unique_key<'a>(pair: (&'a str, &'a str)) -> (bool, (&'a str, &'a str)) {
+    if pair.1 < pair.0 {
+        return (true, (pair.1, pair.0));
+    } else {
+        return (false, (pair.0, pair.1));
+    }
+}
+
+fn dfs<'a>(
+    graph: &HashMap<&'a str, Vec<&'a str>>,
+    node: &'a str,
+    mut seen: Vec<&'a str>,
+    path: Vec<&'a str>,
+) -> Vec<Vec<&'a str>> {
+    let mut paths: Vec<Vec<&'a str>> = vec![];
+    seen.push(node.clone());
+    for t in graph.get(node).unwrap_or(&Vec::new()) {
+        if !seen.contains(t) {
+            let mut v_path = path.clone();
+            v_path.push(t);
+            paths.push(v_path.clone());
+            paths.extend(dfs(graph, t, seen.clone(), v_path).iter().cloned());
+        }
+    }
+    paths
+}
+
+pub fn strongest_longest_path(all_pairs: Vec<(&str, &str)>) -> Vec<(f32, String)> {
+    let mut unique_players: Vec<&str> = vec![];
+    let mut num_games: HashMap<(&str, &str), i32> = HashMap::new();
+    let mut graph: HashMap<&str, Vec<&str>> = HashMap::new();
+    for pair in &all_pairs {
+        // update the win freq table
+        let get_unique = get_unique_key(*pair);
+        let uni_key = get_unique.1;
+
+        unique_players.push(pair.0.clone());
+        unique_players.push(pair.1.clone());
+
+        num_games
+            .get_mut(&uni_key)
+            .map(|count| {
+                *count += 1;
+            })
+            .unwrap_or_else(|| {
+                num_games.insert(uni_key, 1);
+            });
+
+        graph.entry(pair.0).or_insert_with(Vec::new).push(pair.1);
+    }
+
+    unique_players.sort();
+    unique_players.dedup();
+
+    let num_unique_players = unique_players.clone().len();
+
+    let mut all_longest_paths: Vec<Vec<&str>> = vec![];
+    let mut longest_paths_seen = 0;
+
+    for nde in unique_players {
+        for path in dfs(&graph, nde, vec![nde], vec![nde]) {
+            let p_len = path.len();
+            if p_len > longest_paths_seen {
+                longest_paths_seen = p_len;
+                all_longest_paths = vec![path];
+            } else if longest_paths_seen == p_len {
+                all_longest_paths.push(path)
+            }
+        }
+    }
+
+    all_longest_paths.sort();
+    all_longest_paths.dedup();
+
+    let mut longest_paths: Vec<Vec<&str>> = vec![];
+    let mut largest_seen = 0f32;
+
+    for _pth in all_longest_paths {
+        let mut path_weight = 0f32;
+
+        for i in 0.._pth.len() - 1 {
+            let get_unique = get_unique_key((_pth[i], _pth[i + 1]));
+            let uni_key = get_unique.1;
+            let value = num_games.get(&uni_key).unwrap();
+            path_weight = path_weight + *value as f32
+        }
+
+        if path_weight > largest_seen {
+            largest_seen = path_weight;
+            longest_paths = vec![_pth];
+        } else if largest_seen - path_weight < 0.000_000_1 {
+            longest_paths.push(_pth)
+        }
+    }
+    let mut scores = calculate_metric(longest_paths, Metric::Average);
+    scores.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Equal));
+    scores
+}
+
+pub fn bt(all_pairs: Vec<(&str, &str)>) -> Vec<(f32, String)> {
     let mut num_games: HashMap<(&str, &str), i32> = HashMap::new();
     let mut win_table: HashMap<String, f32> = HashMap::new();
     for pair in &all_pairs {
@@ -120,8 +216,8 @@ pub fn bt(
             })
             .collect();
 
-        let new_rank_sum = ranks.clone(); 
-        let mut old_rank_sum = oldranks.clone(); 
+        let new_rank_sum = ranks.clone();
+        let mut old_rank_sum = oldranks.clone();
         let mut err_tot = 0f32;
         for it in new_rank_sum.iter().zip(old_rank_sum.iter_mut()) {
             let (ai, bi) = it;
@@ -134,7 +230,7 @@ pub fn bt(
         }
     }
     let mut results: Vec<(f32, String)> = vec![];
-    for i in 1..unique_players.len(){
+    for i in 1..unique_players.len() {
         results.push((ranks[i], unique_players[i].clone()))
     }
     // println!("{}", "Ranking Bradley Terry Model");
@@ -222,7 +318,7 @@ pub fn calculate_metric_pairs(
     let mut results: Vec<(f32, String)>;
     match metric {
         PairMetric::Win => {
-            println!("Ranking PairMetric: {}", "Wins");
+            // println!("Ranking PairMetric: {}", "Wins");
             results = win_table
                 .iter()
                 .map(|(key, value)| return (*value as f32, key.to_string()))
@@ -235,7 +331,7 @@ pub fn calculate_metric_pairs(
             ()
         }
         PairMetric::Loss => {
-            println!("Ranking PairMetric: {}", "Losses");
+            // println!("Ranking PairMetric: {}", "Losses");
             results = loss_table
                 .iter()
                 .map(|(key, value)| return (*value as f32, key.to_string()))
@@ -243,7 +339,7 @@ pub fn calculate_metric_pairs(
             ()
         }
         PairMetric::WinMinusLoss => {
-            println!("Ranking WinMinusLoss: {}", "Adv");
+            // println!("Ranking WinMinusLoss: {}", "Adv");
 
             results = loss_table
                 .iter()
@@ -256,7 +352,7 @@ pub fn calculate_metric_pairs(
             ()
         }
         PairMetric::WinMinusLossByOpps => {
-            println!("Ranking WinMinusLossByOpps: {}", "Adv");
+            // println!("Ranking WinMinusLossByOpps: {}", "Adv");
 
             let mut min_seen = 99999;
 
@@ -300,7 +396,7 @@ pub fn calculate_metric_pairs(
 }
 
 // https://en.wikipedia.org/wiki/Mean_reciprocal_rank
-pub fn calculate_metric(
+pub fn calculate_metric_with_label(
     all_rankings: Vec<(&str, Vec<&str>)>,
     metric: Metric,
 ) -> Vec<(f32, String)> {
@@ -321,13 +417,48 @@ pub fn calculate_metric(
     let mut results: Vec<(f32, String)> = vec![];
     match metric {
         Metric::Median => {
-            println!("Ranking Metric: {}", "Median");
+            // println!("Ranking Metric: {}", "Median");
             for (k, v) in rank_options.iter() {
                 results.push((median(v), String::from(k)));
             }
         }
         Metric::Average => {
-            println!("Ranking Metric: {}", "Average");
+            // println!("Ranking Metric: {}", "Average");
+            for (k, v) in rank_options.iter() {
+                results.push((average(v), String::from(k)));
+            }
+        }
+    }
+    // use this to sort floats
+    results.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Equal));
+    results
+}
+
+// https://en.wikipedia.org/wiki/Mean_reciprocal_rank
+pub fn calculate_metric(all_rankings: Vec<Vec<&str>>, metric: Metric) -> Vec<(f32, String)> {
+    let mut rank_options: HashMap<String, Vec<usize>> = HashMap::new();
+
+    for score in all_rankings {
+        let mut counter = 0;
+        for s in score {
+            rank_options
+                .entry(String::from(s))
+                .or_insert_with(Vec::new)
+                .push(counter);
+            counter = counter + 1;
+        }
+    }
+
+    let mut results: Vec<(f32, String)> = vec![];
+    match metric {
+        Metric::Median => {
+            // println!("Ranking Metric: {}", "Median");
+            for (k, v) in rank_options.iter() {
+                results.push((median(v), String::from(k)));
+            }
+        }
+        Metric::Average => {
+            // println!("Ranking Metric: {}", "Average");
             for (k, v) in rank_options.iter() {
                 results.push((average(v), String::from(k)));
             }

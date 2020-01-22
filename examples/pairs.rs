@@ -25,6 +25,6 @@ fn main() {
     let byopps = calculate_metric_pairs(pairs.clone(), PairMetric::WinMinusLossByOpps);
     println!("{:?}", byopps);
 
-    let est_victories  = bt(pairs.clone());
+    let est_victories = bt(pairs.clone());
     println!("{:?}", est_victories);
 }

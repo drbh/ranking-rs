@@ -1,14 +1,14 @@
-use ranking::bt;
+use ranking::strongest_longest_path;
 use std::collections::HashMap;
 
 fn ranker(pairs: Vec<(&str, &str)>) -> Vec<(f32, String)> {
-    let est_victories = bt(pairs.clone());
+    let est_victories = strongest_longest_path(pairs.clone());
     let mut rank = 0f32;
     let mut last_score = est_victories[0].0;
     let ranks: Vec<(f32, String)> = est_victories
         .into_iter()
         .map(|(score, name)| {
-            if (last_score - score) > 0.00001 {
+            if (score - last_score) > 0.00001 {
                 rank = rank + 1f32;
                 last_score = score
             }
@@ -158,13 +158,7 @@ mod fauns_criteria {
             ("c", "e4"),
         ]));
         assert!(r["a"] < r["b"]);
-
-        // // originally expected
-        // assert!(r["b"] < r["c"]);
-
-        // maybe c<b since c has won many more times?
-        assert!(r["c"] < r["b"]);
-
+        assert!(r["b"] < r["c"]);
         assert!(r["c"] < r["e1"]);
         assert!(r["c"] < r["e2"]);
         assert!(r["c"] < r["e3"]);
