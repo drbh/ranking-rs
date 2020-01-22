@@ -23,11 +23,16 @@ ranking = "0.0.1"
 #### Iterative
 - Bradley Terry Model
 
+### Graph Based
+
+- Strongest path
 
 ## Example Code
 
 The following code uses both the `Median` and `Average` metric to compute the final ranking. This code is also in `examples/basic.rs`
 
+
+### Positional
 ```rust
 use ranking::{calculate_ranking, Metric};
 
@@ -57,6 +62,7 @@ fn main() {
 }
 ```
 
+### Bradley Terry
 
 ```rust
 use ranking::{bt, calculate_metric_pairs, PairMetric};
@@ -79,3 +85,28 @@ fn main() {
     // [(0.44185534, "a"), (0.20987698, "c"), (0.13296455, "b"), (0.052943442, "d"), (0.04120922, "e")]
 }
 ```
+
+### Strongest Path
+
+```rust
+use ranking::strongest_longest_path
+
+fn main() {
+    let pairs = vec![
+        //
+        ("a", "b"),
+        ("b", "c"),
+        ("c", "e1"),
+        ("c", "e2"),
+        ("c", "e3"),
+        ("c", "e4"),
+    ];
+
+    let est_victories = strongest_longest_path(pairs.clone());
+    println!("{:?}", est_victories.clone());
+}
+```
+
+The strongest path solves ranks like the graphs shown below  
+
+<img src="https://camo.githubusercontent.com/848daefe73723e9d3d2f1e006a4e926a7e653212/687474703a2f2f6d616b6f706f6f6c2e636f6d2f72616e6b61312e706e67" width="500px"/>

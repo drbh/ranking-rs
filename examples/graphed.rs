@@ -2,16 +2,13 @@ use ranking::strongest_longest_path;
 
 fn main() {
     let pairs = vec![
-        // //
-        // ("a", "b"),
-        // ("b", "c"),
-
-
-        ("A","B"),
-        ("B","C"),
-        ("D","B"),
-        ("D","A"),
-        ("D","C"),
+        //
+        ("a", "b"),
+        ("b", "c"),
+        ("c", "e1"),
+        ("c", "e2"),
+        ("c", "e3"),
+        ("c", "e4"),
     ];
 
     let est_victories = strongest_longest_path(pairs.clone());
